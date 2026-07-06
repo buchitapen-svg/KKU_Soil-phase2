@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Soil Improvement Trial — Combined Dashboard</title>
+<style>
+  :root{
+    --bg:#f0f2f5;
+    --card:#ffffff;
+    --border:#e3e5e9;
+    --text:#1a1d23;
+    --muted:#6b7280;
+    --accent:#d97706;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);}
+
+  /* ── Top nav bar ── */
+  .topbar{
+    background:#1a1d23;
+    padding:0 36px;
+    display:flex;
+    align-items:center;
+    gap:0;
+    position:sticky;top:0;z-index:100;
+    box-shadow:0 2px 8px rgba(0,0,0,.25);
+  }
+  .topbar .logo{
+    color:#fff;font-size:14px;font-weight:700;padding:18px 0;
+    margin-right:32px;white-space:nowrap;
+    border-right:1px solid #333;padding-right:28px;
+  }
+  .topbar .logo span{color:#60a5fa;}
+  .tab-btn{
+    color:#9ca3af;font-size:13px;font-weight:600;
+    padding:20px 22px;cursor:pointer;border:none;background:none;
+    border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap;
+  }
+  .tab-btn:hover{color:#fff;}
+  .tab-btn.active{color:#fff;border-bottom-color:#60a5fa;}
+
+  /* ── Page content ── */
+  .page{display:none;padding:32px 36px;}
+  .page.active{display:block;}
+  .wrap{max-width:1180px;margin:0 auto;}
+
+  /* ── Project header ── */
+  .project-tag{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;}
+  h1{font-size:22px;margin:0 0 4px;}
+  .subtitle{color:var(--muted);font-size:14px;margin-bottom:4px;}
+  .subtitle-bold{color:var(--text);font-size:14px;font-weight:600;margin-bottom:4px;}
+  .subtitle-small{color:var(--muted);font-size:13px;margin-bottom:28px;}
+
+  /* ── Cards ── */
+  .cards{display:grid;gap:14px;margin-bottom:28px;}
+  .cards-4{grid-template-columns:repeat(4,1fr);}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px;border-top:4px solid var(--c);}
+  .card .label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
+  .card .value{font-size:15px;font-weight:700;margin-top:6px;line-height:1.3;}
+  .card .range{font-size:12px;color:var(--muted);margin-top:4px;}
+
+  /* ── Panel ── */
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:24px;}
+  .panel h2{font-size:15px;margin:0 0 18px;color:var(--text);}
+
+  /* ── Timeline ── */
+  .timeline{position:relative;width:100%;overflow-x:auto;}
+  .months{font-size:10.5px;color:var(--muted);border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:10px;display:grid;}
+  .months div{text-align:center;}
+  .rows{display:block;}
+  .row{display:grid;align-items:center;height:62px;position:relative;border-bottom:1px dashed #ececec;}
+  .row-label{font-size:12.5px;font-weight:600;padding-right:10px;line-height:1.3;}
+  .bar-track{position:relative;height:38px;}
+  .bar{position:absolute;top:0;height:38px;border-radius:8px;color:white;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;padding:0 8px;text-align:center;line-height:1.2;box-shadow:0 1px 3px rgba(0,0,0,.15);}
+  .pay-tag{position:absolute;top:-17px;font-size:9.5px;font-weight:700;background:#fff;padding:0 3px;}
+  .marker{position:absolute;top:-10px;bottom:-10px;width:2px;background:var(--accent);}
+  .marker-label{position:absolute;top:-28px;font-size:9px;font-weight:700;color:var(--accent);white-space:nowrap;transform:translateX(-50%);}
+
+  /* Project 1 timeline: 21 months */
+  .tl-p1 .months{grid-template-columns:160px repeat(21,1fr);min-width:1100px;}
+  .tl-p1 .rows{min-width:1100px;}
+  .tl-p1 .row{grid-template-columns:160px repeat(21,1fr);}
+  .tl-p1 .bar-track{grid-column:2/23;}
+
+  /* Project 2 timeline: 6 months Jul-2026 to Dec-2026 */
+  .tl-p2 .months{grid-template-columns:170px repeat(6,1fr);min-width:760px;}
+  .tl-p2 .rows{min-width:760px;}
+  .tl-p2 .row{grid-template-columns:170px repeat(6,1fr);}
+  .tl-p2 .bar-track{grid-column:2/8;}
+
+  /* ── Legend ── */
+  .legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:18px;font-size:12.5px;}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .dot{width:12px;height:12px;border-radius:3px;display:inline-block;}
+
+  /* ── Table ── */
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+  th{color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;}
+  .badge{display:inline-block;padding:2px 8px;border-radius:20px;color:#fff;font-size:11px;font-weight:600;white-space:nowrap;}
+
+  /* ── Notes ── */
+  .note{background:#fffaf0;border:1px solid #f6e1b3;border-radius:8px;padding:12px 14px;font-size:12.5px;color:#7c5a00;margin-top:12px;}
+  .note-red{background:#fff0f0;border:1px solid #f3c5c5;border-radius:8px;padding:12px 14px;font-size:12.5px;color:#8a1f1f;margin-top:12px;}
+  .note-blue{background:#f0f7ff;border:1px solid #bdd9f7;border-radius:8px;padding:12px 14px;font-size:12.5px;color:#1e4d7b;margin-top:12px;}
+
+  /* ── Residue grid (Project 2) ── */
+  .residue-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:14px;}
+  .residue-card{border:1px solid var(--border);border-radius:8px;padding:10px 6px;text-align:center;background:#fafafa;}
+  .residue-card .num{font-size:13px;font-weight:700;color:#0369a1;}
+  .residue-card .name{font-size:10.5px;color:var(--text);margin-top:4px;line-height:1.3;font-weight:600;}
+
+  .deadline-line{position:absolute;top:-10px;bottom:-10px;width:2.5px;background:#dc2626;}
+  .deadline-label{position:absolute;top:-28px;font-size:9px;font-weight:700;color:#dc2626;white-space:nowrap;transform:translateX(-50%);}
+</style>
+</head>
+<body>
+
+<!-- ════════════════ NAV BAR ════════════════ -->
+<div class="topbar">
+  <div class="logo">Soil Improvement Trial <span>Dashboard</span></div>
+  <button class="tab-btn active" onclick="switchTab('p1')">
+    📋 1st Project — N-S Fertilizer
+  </button>
+  <button class="tab-btn" onclick="switchTab('p2')">
+    🌱 2nd Project — CBT Factory Residues
+  </button>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     PAGE 1 — 1st Project
+════════════════════════════════════════════════════ -->
+<div class="page active" id="page-p1">
+<div class="wrap">
+
+  <div class="project-tag" style="background:#dbeafe;color:#1d4ed8;">1st Project</div>
+  <h1>Soil Improvement Trial — Schedule Dashboard</h1>
+  <div class="subtitle-bold">Valorization of Organic Acid Production By-product as Nitrogen-Sulfur (Ammonium-Sulfate) Fertilizer for Circular Agriculture</div>
+  <div class="subtitle-small">Jul 2026 – Feb 2027 (target 70–80%) + post-Feb completion · Budget: 2.4M Baht · Payment 2 installments</div>
+
+  <div class="cards" style="grid-template-columns:repeat(3,1fr);">
+    <div class="card" style="--c:#2563eb">
+      <div class="label">Phase 1A</div>
+      <div class="value">Fertilizer Characterization</div>
+      <div class="range">Jul – Sep 2026 · 3 months</div>
+      <div style="margin-top:8px;font-size:11px;color:#6b7280;">
+        Tests: Effluent · Neutralized Effluent · Concentrated Neutralized Effluent
+      </div>
+    </div>
+    <div class="card" style="--c:#059669">
+      <div class="label">Phase 1B</div>
+      <div class="value">Pot Trial — Dosage Optimization</div>
+      <div class="range">Oct 2026 → target 70–80% by Feb-2027 · concurrent with Phase 2</div>
+      <div style="margin-top:8px;font-size:11px;color:#6b7280;">
+        Proceeds if Phase 1A confirms all 3 samples are suitable
+      </div>
+    </div>
+    <div class="card" style="--c:#dc2626">
+      <div class="label">Phase 2</div>
+      <div class="value">Field Trial — Dosage Optimization</div>
+      <div class="range">Oct 2026 → target 70–80% by Feb-2027 · concurrent with Phase 1B</div>
+      <div style="margin-top:8px;font-size:11px;color:#6b7280;">
+        Optimization of dosage rates across crop types · some scope may be trimmed
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline P1 -->
+  <div class="panel">
+    <h2>Timeline</h2>
+    <div class="timeline tl-p1">
+      <div class="months">
+        <div></div>
+        <div>Jul-26</div><div>Aug</div><div>Sep</div>
+        <div>Oct-26</div><div>Nov</div><div>Dec</div>
+        <div>Jan-27</div><div>Feb</div><div>Mar</div>
+        <div>Apr-27</div><div>May</div><div>Jun</div>
+        <div>Jul-27</div><div>Aug</div><div>Sep</div>
+        <div>Oct-27</div><div>Nov</div><div>Dec</div>
+        <div>Jan-28</div><div>Feb</div><div>Mar-28</div>
+      </div>
+      <div class="rows">
+        <!-- 21 months: each = 4.762%
+             idx0=Jul26  idx3=Oct26  idx7=Feb27  idx14=Sep27  idx17=Dec27 -->
+
+        <!-- Agreement signing marker (floats above all rows) -->
+
+        <!-- Phase 1A -->
+        <div class="row">
+          <div class="row-label">Phase 1A<br><span style="font-weight:400;color:var(--muted);font-size:11px;">Agreement 1 · Concurrent</span></div>
+          <div class="bar-track">
+            <!-- early start before signing -->
+            <div class="bar" style="left:0%;width:9.52%;background:repeating-linear-gradient(45deg,#2563eb,#2563eb 7px,#93c5fd 7px,#93c5fd 14px);border-radius:8px 0 0 8px;font-size:10px;justify-content:flex-start;padding-left:6px;">Early start</div>
+            <!-- main bar from signing ~Sep26 -->
+            <div class="bar" style="left:9.52%;width:4.76%;background:#2563eb;border-radius:0 8px 8px 0;">1A</div>
+            <div class="pay-tag" style="left:0%;color:#8a1f1f;font-size:9px;">work starts</div>
+            <div class="marker" style="left:9.52%;background:#1e40af;"></div>
+            <div class="marker-label" style="left:9.52%;color:#1e40af;">SA signed (&lt;Sep-26)</div>
+            <div class="pay-tag" style="left:9.52%;color:#059669;">1st payment</div>
+          </div>
+        </div>
+        <!-- Phase 1B -->
+        <div class="row">
+          <div class="row-label">Phase 1B<br><span style="font-weight:400;color:var(--muted);font-size:11px;">Agreement 1 · Pot Trial</span></div>
+          <div class="bar-track">
+            <div class="bar" style="left:14.29%;width:19.05%;background:#059669;border-radius:8px 0 0 8px;">Pot Trial (1B) — concurrent</div>
+            <div class="bar" style="left:33.33%;width:38.10%;background:repeating-linear-gradient(45deg,#059669,#059669 7px,#6ee7b7 7px,#6ee7b7 14px);opacity:.9;border-radius:0 8px 8px 0;font-size:10px;justify-content:flex-start;padding-left:8px;">Remaining ~20–30% (post Feb-27)</div>
+            <div class="marker" style="left:33.33%;background:#d97706;"></div>
+            <div class="marker-label" style="left:33.33%;color:#d97706;">Final Report 1 · 2nd payment (Feb-27)</div>
+            <div class="marker" style="left:71.43%;background:#059669;"></div>
+            <div class="marker-label" style="left:71.43%;color:#059669;">Final Report 2 (100%)</div>
+          </div>
+        </div>
+        <!-- Phase 2 (merged 2A+2B) -->
+        <div class="row">
+          <div class="row-label">Phase 2<br><span style="font-weight:400;color:var(--muted);font-size:11px;">Agreement 1 · Field Trial</span><br><span style="font-weight:400;color:var(--muted);font-size:10px;">Dosage Optimization</span></div>
+          <div class="bar-track">
+            <div class="bar" style="left:14.29%;width:19.05%;background:#dc2626;border-radius:8px 0 0 8px;">Field Trial — Dosage Optimization (concurrent with 1B)</div>
+            <div class="bar" style="left:33.33%;width:38.10%;background:repeating-linear-gradient(45deg,#dc2626,#dc2626 7px,#fca5a5 7px,#fca5a5 14px);opacity:.9;border-radius:0 8px 8px 0;font-size:10px;justify-content:flex-start;padding-left:8px;">Remaining scope (post Feb-27) · scope may be trimmed</div>
+            <div class="marker" style="left:33.33%;background:#d97706;"></div>
+            <div class="marker-label" style="left:33.33%;color:#d97706;">~70–80% overall (Feb-27)</div>
+          </div>
+        </div>
+        <!-- Phase 3 -->
+        <div class="row" style="border-bottom:none;">
+          <div class="row-label">Phase 3<br><span style="font-weight:400;color:var(--muted);font-size:11px;">(Conditional · 12 mo.)</span></div>
+          <div class="bar-track">
+            <div class="bar" style="left:33.33%;width:57.14%;background:repeating-linear-gradient(45deg,#9333ea,#9333ea 8px,#a855f7 8px,#a855f7 16px);opacity:.85;justify-content:flex-start;padding-left:14px;">Possible Phase 3 (12 months)</div>
+            <div class="marker" style="left:33.33%;background:#9333ea;"></div>
+            <div class="marker-label" style="left:33.33%;color:#9333ea;">Earliest: Feb-2027</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i class="dot" style="background:#2563eb"></i>Phase 1A</span>
+      <span><i class="dot" style="background:#059669"></i>Phase 1B (Pot Trial)</span>
+      <span><i class="dot" style="background:#dc2626"></i>Phase 2 (Field Trial)</span>
+      <span><i class="dot" style="background:#9333ea"></i>Phase 3 (Conditional)</span>
+      <span><i class="dot" style="background:#d97706"></i>Final Report milestone</span>
+      <span style="font-size:11px;color:#6b7280;">▧ Hatched = remaining scope post Feb-2027</span>
+    </div>
+    <div class="note"><strong>Budget (Agreement 1):</strong> 2.4M Baht &nbsp;·&nbsp; Phase 1A, 1B, and Phase 2 run concurrently &nbsp;·&nbsp; Service Agreement may be finalized before Sep-2026</div>
+    <div class="note"><strong>Payment — 2 installments (Agreement 1):</strong><br>
+      • <strong>1st installment:</strong> upon Service Agreement signing (target before Sep-2026)<br>
+      • <strong>2nd installment:</strong> Feb-2027 (Final Report 1 — covering ~70–80% overall progress)
+    </div>
+    <div class="note"><strong>Reporting structure:</strong><br>
+      • <strong>Final Report 1</strong> — Feb-2027: progress report at ~70–80% of total scope (Pot Trial 1B + Field Trial Phase 2)<br>
+      • <strong>Final Report 2</strong> — after 100% completion of all remaining work (hatched bars on timeline)<br>
+      Note: Some scope items from the original proposal (e.g. DOA registration) may be cut to align with the Feb-2027 progress target.
+    </div>
+    <div class="note-red">Phase 2 (Field Trial) starts concurrently with Phase 1B from Oct-2026. Scope may be trimmed (e.g. DOA may be removed) to meet Feb-2027 target.</div>
+  </div>
+
+  <!-- Service Agreement P1 -->
+  <div class="panel">
+    <h2>Service Agreement Documents</h2>
+    <table>
+      <thead><tr><th>Document</th><th>Covers</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge" style="background:#059669;">Agreement 1</span></td><td>Phase 1A + Phase 1B (Pot Trial — Dosage Optimization) + Phase 2 (Field Trial — Dosage Optimization) — all concurrent · Budget: 2.4M Baht</td></tr>
+        <tr><td><span class="badge" style="background:#dc2626;">Agreement 2</span></td><td>Phase 2 remaining scope (Safety/Env assessment, DOS/DOA registration) — subject to scope review after Final Report 1</td></tr>
+        <tr><td><span class="badge" style="background:#9333ea;">Future</span></td><td>Phase 3 — contingent, separate agreement if triggered</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Test Samples P1 -->
+  <div class="panel">
+    <h2>Test Samples / Treatments by Phase</h2>
+    <table>
+      <thead><tr><th>Phase</th><th>Samples / Treatments</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="badge" style="background:#2563eb;">1A</span></td>
+          <td>1. Effluent<br>2. Neutralized effluent<br>3. Concentrated neutralized effluent</td>
+          <td>Defined</td>
+        </tr>
+        <tr>
+          <td><span class="badge" style="background:#059669;">1B</span></td>
+          <td>1. Effluent<br>2. Neutralized effluent<br>3. Concentrated neutralized effluent<br>4. Negative control<br>5. Positive control</td>
+          <td>Defined</td>
+        </tr>
+        <tr>
+          <td><span class="badge" style="background:#dc2626;">2</span></td>
+          <td>Field trial conditions and number of treatments — not yet specified</td>
+          <td><span style="color:#d97706;font-weight:600;">To be determined</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="note-red">Phase 1A starts Jul-2026 ahead of SA1 signing. Phase 1B and Phase 2 commence Oct-2026, running concurrently. SA may be finalized before Sep-2026.</div>
+  </div>
+
+  <!-- Decision Framework P1 -->
+  <div class="panel">
+    <h2>Phase Decision Framework (Based on Phase 1A Results)</h2>
+    <table>
+      <thead><tr><th>Phase 1A Outcome</th><th>Decision</th><th>Phase 1B &amp; Phase 2 Action</th></tr></thead>
+      <tbody>
+        <tr style="background:#f0fdf4;">
+          <td><strong>All 3 samples confirmed suitable</strong><br><span style="font-size:11.5px;color:#6b7280;">Effluent, Neutralized Effluent &amp; Concentrated Neutralized Effluent all pass characterization</span></td>
+          <td><span class="badge" style="background:#059669;">Proceed — all 3</span></td>
+          <td>Phase 1B: Pot trial with all 3 samples + controls → optimize dosage for each sample<br>Phase 2: Field trial with all 3 samples → optimize dosage rates across different crop types</td>
+        </tr>
+        <tr style="background:#fffaf0;">
+          <td><strong>Partial suitability</strong><br><span style="font-size:11.5px;color:#6b7280;">Only some samples pass</span></td>
+          <td><span class="badge" style="background:#d97706;">Proceed — selected</span></td>
+          <td>Phase 1B &amp; Phase 2 proceed with confirmed-suitable samples only; scope and treatments adjusted accordingly</td>
+        </tr>
+        <tr style="background:#fef2f2;">
+          <td><strong>No sample suitable</strong></td>
+          <td><span class="badge" style="background:#dc2626;">Review required</span></td>
+          <td>Project scope reviewed before proceeding to Phase 1B &amp; Phase 2</td>
+        </tr>
+        <tr>
+          <td colspan="3" style="background:#f0f7ff;font-size:11.5px;color:#1e4d7b;padding:8px 10px;">
+            <strong>Optimization scope (Phase 1B &amp; Phase 2):</strong> For each confirmed sample, trials will determine the optimal dosage rate and application method per crop type. Phase 1B focuses on pot-scale optimization; Phase 2 scales up to field conditions across multiple crop varieties.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Payment Schedule P1 -->
+  <div class="panel">
+    <h2>Phase Details &amp; Payment Schedule (Aligned to Service Agreements)</h2>
+    <table>
+      <thead><tr><th>Agreement</th><th>Phase</th><th>Scope</th><th>Duration</th><th>1st Payment (on signing)</th><th>2nd Payment (Feb-2027)</th></tr></thead>
+      <tbody>
+        <tr>
+          <td rowspan="3" style="vertical-align:top;"><span class="badge" style="background:#059669;">Agreement 1</span><br><small style="color:#6b7280;font-size:11px;">Budget: 2.4M Baht</small></td>
+          <td><span class="badge" style="background:#2563eb;">1A</span></td>
+          <td>Fertilizer characterization — starts Jul-2026 (early start before SA signing). Concurrent with 1B/2A/2B.</td>
+          <td>3 months</td><td>Upon SA signing (&lt;Sep-2026)</td><td>–</td>
+        </tr>
+        <tr>
+          <td><span class="badge" style="background:#059669;">1B</span></td>
+          <td>Pot trial — agronomic &amp; safety screening on vegetables. Concurrent with 2A &amp; 2B from Oct-2026. Final Report 1 (70–80%) by Feb-2027; Final Report 2 after 100% completion.</td>
+          <td>Oct-2026 → FR1: Feb-2027 / FR2: TBD</td><td>Upon SA signing</td><td>Feb-2027 (Final Report 1)</td>
+        </tr>
+        <tr>
+          <td><span class="badge" style="background:#dc2626;">2</span></td>
+          <td>Field trial — dosage optimization across crop types. Starts concurrently with Phase 1B (Oct-2026). Target 70–80% by Feb-2027. Scope may be trimmed (e.g. DOA) to meet target. Final Report 1 by Feb-2027; Final Report 2 after remaining scope complete.</td>
+          <td>Oct-2026 → FR1: Feb-2027 / FR2: TBD</td><td>Upon SA signing</td><td>Feb-2027 (Final Report 1)</td>
+        </tr>
+        <tr><td colspan="6" style="background:#fff0f0;font-size:11.5px;color:#8a1f1f;padding:6px 10px;">Agreement 1 (2.4M Baht): SA may be signed before Sep-2026. 1st payment upon signing. 2nd payment Feb-2027 (Final Report 1 at ~70–80% overall). Final Report 2 covers remaining scope post-Feb-2027.</td></tr>
+        <tr>
+          <td><span class="badge" style="background:#dc2626;">Agreement 2</span></td>
+          <td><span class="badge" style="background:#dc2626;">2B remaining</span></td>
+          <td>Remaining Phase 2 scope after Final Report 1 — safety/env. assessment, DOS/DOA registration. Subject to scope review; some items (e.g. DOA) may be cut.</td>
+          <td>Post Feb-2027 → TBD</td><td>TBD after FR1</td><td>TBD</td>
+        </tr>
+        <tr><td colspan="6" style="background:#fff0f0;font-size:11.5px;color:#8a1f1f;padding:6px 10px;">Agreement 2: scope and payment terms finalized after Final Report 1 review (Feb-2027).</td></tr>
+        <tr>
+          <td><span class="badge" style="background:#9333ea;">Future</span></td>
+          <td><span class="badge" style="background:#9333ea;">3</span></td>
+          <td>Conditional follow-on — pending Phase 1B &amp; 2 review outcomes</td>
+          <td>12 months</td><td>Earliest: Feb-2027</td><td>~Feb-2028</td>
+        </tr>
+        <tr><td colspan="6" style="background:#f4f6fb;font-size:11.5px;color:#6b7280;padding:6px 10px;">Phase 3 payment terms TBD — separate service agreement required.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+</div><!-- /page-p1 -->
+
+
+<!-- ════════════════════════════════════════════════════
+     PAGE 2 — 2nd Project
+════════════════════════════════════════════════════ -->
+<div class="page" id="page-p2">
+<div class="wrap">
+
+  <div class="project-tag" style="background:#d1fae5;color:#065f46;">2nd Project</div>
+  <h1>Soil Improvement Trial — Schedule Dashboard</h1>
+  <div class="subtitle-bold">Valorization of CBT Factory Residues as Soil Amendments, Biofertilizers, and Vermicompost</div>
+  <div class="subtitle-small">Jul 2026 – Dec 2026 · Phase 1 (1 month) + Phase 2A/2B/2C (deadline Dec-2026) · Both Service Agreements targeted Sep-2026</div>
+
+  <div class="cards cards-4">
+    <div class="card" style="--c:#0369a1"><div class="label">Phase 1</div><div class="value">Material Characterization</div><div class="range">All 7 residues · Jul-2026 · 1 month</div></div>
+    <div class="card" style="--c:#059669"><div class="label">Phase 2A</div><div class="value">Soil Amendment Pot Test</div><div class="range">Aug – Dec 2026 · Agreement 1</div></div>
+    <div class="card" style="--c:#d97706"><div class="label">Phase 2B</div><div class="value">Biofertilizer Pot Test</div><div class="range">Aug – Dec 2026 · Agreement 1</div></div>
+    <div class="card" style="--c:#9333ea"><div class="label">Phase 2C</div><div class="value">Vermicompost Assessment</div><div class="range">Sep 2026 – Dec 2026 · Agreement 2</div></div>
+  </div>
+
+  <!-- 7 Residues -->
+  <div class="panel">
+    <h2>7 CBT Factory Residues Under Study</h2>
+    <div class="residue-grid">
+      <div class="residue-card"><div class="num">R1</div><div class="name">BG Boiler Ash</div></div>
+      <div class="residue-card"><div class="num">R2</div><div class="name">Wood Chip Ash</div></div>
+      <div class="residue-card"><div class="num">R3</div><div class="name">ASM Sludge</div></div>
+      <div class="residue-card"><div class="num">R4</div><div class="name">BG Residue</div></div>
+      <div class="residue-card"><div class="num">R5</div><div class="name">CAP Residue</div></div>
+      <div class="residue-card"><div class="num">R6</div><div class="name">PFEV Liquid</div></div>
+      <div class="residue-card"><div class="num">R7</div><div class="name">CAP REZ</div></div>
+    </div>
+    <div class="note-blue">Track assignment per residue (Soil Amendment / Biofertilizer / Vermicompost) determined from Phase 1 results (Jul-2026). Phase 2A/2B/2C proceed with residues confirmed as suitable for each application.</div>
+  </div>
+
+  <!-- Timeline P2 -->
+  <!-- 6 months Jul-2026 to Dec-2026 · each month = 16.667% -->
+  <!-- Key positions: Phase1=0-6.67%, SA signing Sep-26=13.33%, 2A/2B end Dec-26=40%, 2C max end Sep-27=100% -->
+  <div class="panel">
+    <h2>Timeline</h2>
+    <div class="timeline tl-p2">
+      <div class="months">
+        <div></div>
+        <div>Jul-26</div><div>Aug-26</div><div>Sep-26</div>
+        <div>Oct-26</div><div>Nov-26</div><div>Dec-26</div>
+      </div>
+      <div class="rows">
+        <!-- Phase 1: Jul-26 only, idx 0–1 = 0%→6.67% -->
+        <div class="row">
+          <div class="row-label">Phase 1<br><span style="font-weight:400;color:var(--muted);font-size:11px;">Agreement 1 · All 7 Residues</span></div>
+          <div class="bar-track">
+            <div class="bar" style="left:0%;width:16.67%;background:#0369a1;">Material Characterization</div>
+            <div class="pay-tag" style="left:0%;color:#8a1f1f;">work starts</div>
+            <!-- SA1 signing Sep-26 -->
+            <div class="marker" style="left:33.33%;background:#059669;"></div>
+            <div class="marker-label" style="left:33.33%;color:#059669;">SA1 signed (Sep-26)</div>
+          </div>
+        </div>
+        <!-- Phase 2A: Aug-26 (early start) to Dec-26 = 6.67%→40%, width 33.33% -->
+        <div class="row">
+          <div class="row-label">Phase 2A<br><span style="font-weight:400;color:var(--muted);font-size:11px;">Agreement 1 · Soil Amendment</span></div>
+          <div class="bar-track">
+            <!-- early-start segment before SA1 signing -->
+            <div class="bar" style="left:16.67%;width:16.66%;background:repeating-linear-gradient(45deg,#059669,#059669 6px,#86efac 6px,#86efac 12px);font-size:10px;justify-content:flex-start;padding-left:6px;">Early start</div>
+            <!-- main bar from SA1 signing -->
+            <div class="bar" style="left:33.33%;width:66.67%;background:#059669;">Soil Amendment Pot Test</div>
+            <div class="pay-tag" style="left:33.33%;color:#059669;">50% (SA1 signed)</div>
+            <div class="pay-tag" style="left:97%;">50%</div>
+            <div class="deadline-line" style="left:97%;"></div>
+            <div class="deadline-label" style="left:97%;">Dec-26 deadline</div>
+          </div>
+        </div>
+        <!-- Phase 2B: same as 2A -->
+        <div class="row">
+          <div class="row-label">Phase 2B<br><span style="font-weight:400;color:var(--muted);font-size:11px;">Agreement 1 · Biofertilizer</span></div>
+          <div class="bar-track">
+            <div class="bar" style="left:16.67%;width:16.66%;background:repeating-linear-gradient(45deg,#d97706,#d97706 6px,#fde68a 6px,#fde68a 12px);font-size:10px;justify-content:flex-start;padding-left:6px;">Early start</div>
+            <div class="bar" style="left:33.33%;width:66.67%;background:#d97706;">Biofertilizer Pot Test</div>
+            <div class="pay-tag" style="left:33.33%;color:#d97706;">50% (SA1 signed)</div>
+            <div class="pay-tag" style="left:97%;">50%</div>
+          </div>
+        </div>
+        <!-- Phase 2C: starts Sep-26 (SA2 signed), must complete Dec-26 = 33.33%→100% -->
+        <div class="row" style="border-bottom:none;">
+          <div class="row-label">Phase 2C<br><span style="font-weight:400;color:var(--muted);font-size:11px;">Agreement 2 · Vermicompost</span></div>
+          <div class="bar-track">
+            <div class="bar" style="left:33.33%;width:66.67%;background:#9333ea;">Vermicompost Process &amp; Quality Assessment (complete Dec-26)</div>
+            <div class="pay-tag" style="left:33.33%;">70%</div>
+            <div class="pay-tag" style="left:96%;">30%</div>
+            <!-- SA2 signing Sep-26 -->
+            <div class="marker" style="left:33.33%;background:#9333ea;"></div>
+            <div class="marker-label" style="left:33.33%;color:#9333ea;">SA2 signed → 2C starts (Sep-26)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i class="dot" style="background:#0369a1"></i>Phase 1</span>
+      <span><i class="dot" style="background:#059669"></i>Phase 2A – Soil Amendment</span>
+      <span><i class="dot" style="background:#d97706"></i>Phase 2B – Biofertilizer</span>
+      <span><i class="dot" style="background:#9333ea"></i>Phase 2C – Vermicompost</span>
+      <span style="font-size:11px;color:#6b7280;">▧ Hatched = work started before SA signing</span>
+    </div>
+    <div style="font-size:11px;color:#8a1f1f;margin-top:8px;">Phase 1, 2A, and 2B work may commence before SA1 is finalized. Agreement 1 payment is made in 2 installments: 50% upon SA1 signing (Sep-2026) and 50% at deadline completion (Dec-2026). Agreement 2 (Phase 2C): 70% on SA2 signing (Sep-2026) · 30% on completion (Dec-2026).</div>
+    <div class="note-red">All phases (2A, 2B, 2C) must complete by Dec-2026. Phase 2C must not start until Agreement 2 is signed (Sep-2026).</div>
+    <div class="note">Both Service Agreements (SA1 and SA2) are targeted for signing in Sep-2026.</div>
+  </div>
+
+  <!-- Service Agreement P2 -->
+  <div class="panel">
+    <h2>Service Agreement Documents</h2>
+    <table>
+      <thead><tr><th>Document</th><th>Covers</th><th>Target Signing</th><th>Payment Structure</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="badge" style="background:#059669;">Agreement 1</span></td>
+          <td>Phase 1 (Material characterization) + Phase 2A (Soil Amendment) + Phase 2B (Biofertilizer)</td>
+          <td>Sep-2026</td>
+          <td>1st payment: 50% upon SA1 signing (Sep-2026) · 2nd payment: 50% at Dec-2026 deadline</td>
+        </tr>
+        <tr>
+          <td><span class="badge" style="background:#9333ea;">Agreement 2</span></td>
+          <td>Phase 2C (Vermicompost — must start only after SA2 signed, complete by Dec-2026)</td>
+          <td>Sep-2026</td>
+          <td>70% on signing (Sep-2026) · 30% on Phase 2C completion (Dec-2026)</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="note">Phase 1, 2A, and 2B work may commence before SA1 is finalized (early start). Payment is triggered only upon SA1 signing — not at the start of work. Phase 2C must not start until Agreement 2 is signed (Sep-2026).</div>
+  </div>
+
+  <!-- Payment Table P2 -->
+  <div class="panel">
+    <h2>Phase Details &amp; Payment Schedule</h2>
+    <table>
+      <thead><tr><th>Agreement</th><th>Phase</th><th>Scope</th><th>Materials</th><th>Duration</th><th>Start (70%)</th><th>Complete (30%)</th></tr></thead>
+      <tbody>
+        <tr>
+          <td rowspan="3" style="vertical-align:top;"><span class="badge" style="background:#059669;">Agreement 1</span></td>
+          <td><span class="badge" style="background:#0369a1;">Phase 1</span></td>
+          <td>Material characterization — physical, chemical &amp; nutrient profiling of all 7 residues. Early start Jul-2026 before SA1 signing.</td>
+          <td>R1–R7 (all 7)</td><td>1 month</td><td>Jul-2026 (early start) / Sep-2026 (1st payment: 50%)</td><td>Jul-2026</td>
+        </tr>
+        <tr>
+          <td><span class="badge" style="background:#059669;">Phase 2A</span></td>
+          <td>Soil amendment pot test — agronomic screening &amp; safety assessment. Early work may begin Aug-2026.</td>
+          <td>TBD after Phase 1</td><td>~5 months</td><td>Aug-2026 (early start) / Sep-2026 (1st payment: 50%)</td><td>Dec-2026 (2nd payment: 50%)</td>
+        </tr>
+        <tr>
+          <td><span class="badge" style="background:#d97706;">Phase 2B</span></td>
+          <td>Biofertilizer pot test — biological activity &amp; pot trial. Early work may begin Aug-2026.</td>
+          <td>TBD after Phase 1</td><td>~5 months</td><td>Aug-2026 (early start) / Sep-2026 (1st payment: 50%)</td><td>Dec-2026 (2nd payment: 50%)</td>
+        </tr>
+        <tr><td colspan="7" style="background:#e8f5e9;font-size:11.5px;color:#1b5e20;padding:6px 10px;">Agreement 1: 1st installment 50% upon SA1 signing (Sep-2026) · 2nd installment 50% at Dec-2026 deadline. Work on Phase 1/2A/2B may begin before signing.</td></tr>
+        <tr>
+          <td><span class="badge" style="background:#9333ea;">Agreement 2</span></td>
+          <td><span class="badge" style="background:#9333ea;">Phase 2C</span></td>
+          <td>Vermicompost process &amp; quality assessment. Must start only after SA2 is signed (Sep-2026). Must complete by Dec-2026.</td>
+          <td>TBD after Phase 1</td><td>~4 months</td><td>Sep-2026 (after SA2 signed)</td><td>Dec-2026</td>
+        </tr>
+        <tr><td colspan="7" style="background:#f3e8ff;font-size:11.5px;color:#4a1272;padding:6px 10px;">Agreement 2: 70% on signing (Sep-2026) · 30% on Phase 2C completion (Dec-2026)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Decision Framework -->
+  <div class="panel">
+    <h2>Phase 1 → Phase 2 Track Decision Framework</h2>
+    <table>
+      <thead><tr><th>Characterization Outcome</th><th>Assigned Track</th><th>Key Criteria</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>High N/P/K, low heavy metals, suitable pH</td>
+          <td><span class="badge" style="background:#059669;">2A Soil Amendment</span></td>
+          <td>Macro/micro nutrient profile, heavy metal screening, EC/pH</td>
+        </tr>
+        <tr>
+          <td>Rich organic carbon, biological activity indicators</td>
+          <td><span class="badge" style="background:#d97706;">2B Biofertilizer</span></td>
+          <td>C:N ratio, microbial viability, bioactive compounds</td>
+        </tr>
+        <tr>
+          <td>High organic matter, biodegradable, suitable moisture</td>
+          <td><span class="badge" style="background:#9333ea;">2C Vermicompost</span></td>
+          <td>Organic matter %, moisture retention, worm feedstock suitability</td>
+        </tr>
+        <tr><td colspan="3" style="font-size:11.5px;color:#6b7280;">A single residue may qualify for more than one track. Final assignment confirmed end of Phase 1 (Jul-2026).</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+</div><!-- /page-p2 -->
+
+<script>
+function switchTab(id){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+</script>
+
+</body>
+</html>
